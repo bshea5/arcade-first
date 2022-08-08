@@ -42,6 +42,8 @@ class SpaceShooter(arcade.Window):
 
         self.player: arcade.Sprite | None = None
 
+        self.physics_engine: arcade.PhysicsEngineSimple | None = None
+
         self.setup()
 
     # Have a seperate setup() for managing multiple levels & re-init'ing.
@@ -64,6 +66,8 @@ class SpaceShooter(arcade.Window):
 
     def on_update(self, delta_time: float):
         super().on_update(delta_time)
+
+        self.player.update()
 
         for enemy in self.enemies_list:
             enemy.update()
@@ -117,6 +121,48 @@ class SpaceShooter(arcade.Window):
 
         # Add it to the enemies list
         self.clouds_list.append(cloud)
+
+    def on_key_press(self, symbol, modifiers):
+        """Handle user keyboard input
+        Q: Quit the game
+        P: Pause/Unpause the game
+        I/J/K/L: Move Up, Left, Down, Right
+        Arrows: Move Up, Left, Down, Right
+
+        Arguments:
+            symbol {int} -- Which key was pressed
+            modifiers {int} -- Which modifiers were pressed
+        """
+        if symbol == arcade.key.Q:
+            # Quit immediately
+            arcade.close_window()
+
+        if symbol == arcade.key.P:
+            self.paused = not self.paused
+
+        if symbol in [arcade.key.W, arcade.key.UP]:
+            self.player.change_y = 5
+
+        if symbol in [arcade.key.S, arcade.key.DOWN]:
+            self.player.change_y = -5
+
+        if symbol in [arcade.key.A, arcade.key.LEFT]:
+            self.player.change_x = -5
+
+        if symbol in [arcade.key.D, arcade.key.RIGHT]:
+            self.player.change_x = 5
+
+    def on_key_release(self, symbol: int, modifiers: int):
+        """Undo movement vectors when movement keys are released
+
+        Arguments:
+            symbol {int} -- Which key was pressed
+            modifiers {int} -- Which modifiers were pressed
+        """
+        if symbol in [arcade.key.W, arcade.key.S, arcade.key.UP, arcade.key.DOWN]:
+            self.player.change_y = 0
+        if symbol in [arcade.key.A, arcade.key.D, arcade.key.LEFT, arcade.key.RIGHT]:
+            self.player.change_x = 0
 
 
 if __name__ == "__main__":
