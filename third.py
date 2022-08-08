@@ -1,5 +1,7 @@
 # Basic arcade shooter
 
+from time import sleep
+from typing import List
 import arcade
 import random
 
@@ -104,15 +106,29 @@ class SpaceShooter(arcade.Window):
         # Check for collisions before updates
         if self.player.collides_with_list(self.enemies_list):
             arcade.play_sound(self.collision_sound)
+            sleep(1)
             arcade.close_window()
 
-        self.player.update()
+        sprites: List[arcade.Sprite] = (
+            [sprite for sprite in self.enemies_list]
+            + [sprite for sprite in self.clouds_list]
+            + [self.player]
+        )
 
-        for enemy in self.enemies_list:
-            enemy.update()
+        for sprite in sprites:
+            sprite.set_position = (
+                int(sprite.center_x + sprite.change_x * delta_time),
+                int(sprite.center_y + sprite.change_y * delta_time),
+            )
+            sprite.update()
 
-        for cloud in self.clouds_list:
-            cloud.update()
+        # self.player.update()
+
+        # for enemy in self.enemies_list:
+        #     enemy.update()
+
+        # for cloud in self.clouds_list:
+        #     cloud.update()
 
         # Keep this after player update.
         self.keep_player_in_bounds()
