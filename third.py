@@ -36,13 +36,17 @@ class SpaceShooter(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
 
+        self.paused: bool = False
+
         # SpriteList come with update/draw/check behaviors.
         self.enemies_list: arcade.SpriteList | None = None
         self.clouds_list: arcade.SpriteList | None = None
-
         self.player: arcade.Sprite | None = None
-
         self.physics_engine: arcade.PhysicsEngineSimple | None = None
+        self.collision_sound: arcade.Sound | None = None
+        self.move_up_sound: arcade.Sound | None = None
+        self.move_down_sound: arcade.Sound | None = None
+        self.background_music: arcade.Sound | None = None
 
         self.setup()
 
@@ -51,6 +55,8 @@ class SpaceShooter(arcade.Window):
         """Get the game ready!"""
 
         arcade.set_background_color(arcade.color.SKY_BLUE)
+
+        self.paused = False
 
         self.enemies_list: arcade.SpriteList = arcade.SpriteList()
         self.clouds_list: arcade.SpriteList = arcade.SpriteList()
@@ -64,8 +70,41 @@ class SpaceShooter(arcade.Window):
         # Spawn a new cloud every 1s
         arcade.schedule(self.add_cloud, 1.0)
 
+        # Load your sounds
+        # Sound sources: Jon Fincher
+        self.collision_sound = arcade.load_sound("sounds/Collision.wav")
+        self.move_up_sound = arcade.load_sound("sounds/Rising_putter.wav")
+        self.move_down_sound = arcade.load_sound("sounds/Falling_putter.wav")
+
+        # Load your background music
+        # Sound source: http://ccmixter.org/files/Apoxode/59262
+        # License: https://creativecommons.org/licenses/by/3.0/
+        arcade.play_sound(
+            arcade.load_sound("sounds/Apoxode_-_Electric_1.wav"), looping=True
+        )
+
+    def keep_player_in_bounds(self):
+        # Keep the player on screen
+        if self.player.top > self.height:
+            self.player.top = self.height
+        if self.player.right > self.width:
+            self.player.right = self.width
+        if self.player.bottom < 0:
+            self.player.bottom = 0
+        if self.player.left < 0:
+            self.player.left = 0
+
     def on_update(self, delta_time: float):
         super().on_update(delta_time)
+
+        # If paused, don't update anything
+        if self.paused:
+            return
+
+        # Check for collisions before updates
+        if self.player.collides_with_list(self.enemies_list):
+            arcade.play_sound(self.collision_sound)
+            arcade.close_window()
 
         self.player.update()
 
@@ -74,6 +113,9 @@ class SpaceShooter(arcade.Window):
 
         for cloud in self.clouds_list:
             cloud.update()
+
+        # Keep this after player update.
+        self.keep_player_in_bounds()
 
     def on_draw(self):
         """Called whenever you need to draw your window"""
@@ -90,6 +132,9 @@ class SpaceShooter(arcade.Window):
         Arguments:
             delta_time {float} -- How much time has passed since the last call
         """
+        if self.paused:
+            return
+
         # First, create the new enemy sprite
         enemy: FlyingSprite = FlyingSprite("images/missile.png", SCALING)
 
@@ -109,6 +154,9 @@ class SpaceShooter(arcade.Window):
         Arguments:
             delta_time {float} -- How much time has passed since the last call
         """
+        if self.paused:
+            return
+
         # First, create the new cloud sprite
         cloud: FlyingSprite = FlyingSprite("images/cloud.png", SCALING)
 
@@ -133,7 +181,7 @@ class SpaceShooter(arcade.Window):
             symbol {int} -- Which key was pressed
             modifiers {int} -- Which modifiers were pressed
         """
-        if symbol == arcade.key.Q:
+        if symbol == arcade.key.ESCAPE:
             # Quit immediately
             arcade.close_window()
 
@@ -142,9 +190,11 @@ class SpaceShooter(arcade.Window):
 
         if symbol in [arcade.key.W, arcade.key.UP]:
             self.player.change_y = 5
+            arcade.play_sound(self.move_up_sound)
 
         if symbol in [arcade.key.S, arcade.key.DOWN]:
             self.player.change_y = -5
+            arcade.play_sound(self.move_down_sound)
 
         if symbol in [arcade.key.A, arcade.key.LEFT]:
             self.player.change_x = -5
