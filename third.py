@@ -49,7 +49,7 @@ class SpaceShooter(arcade.Window):
         self.move_up_sound: arcade.Sound | None = None
         self.move_down_sound: arcade.Sound | None = None
         self.background_music: arcade.Sound | None = None
-
+        self.debug: bool = False
         self.setup()
 
     # Have a seperate setup() for managing multiple levels & re-init'ing.
@@ -59,6 +59,7 @@ class SpaceShooter(arcade.Window):
         arcade.set_background_color(arcade.color.SKY_BLUE)
 
         self.paused = False
+        self.debug = False
 
         self.enemies_list: arcade.SpriteList = arcade.SpriteList()
         self.clouds_list: arcade.SpriteList = arcade.SpriteList()
@@ -122,14 +123,6 @@ class SpaceShooter(arcade.Window):
             )
             sprite.update()
 
-        # self.player.update()
-
-        # for enemy in self.enemies_list:
-        #     enemy.update()
-
-        # for cloud in self.clouds_list:
-        #     cloud.update()
-
         # Keep this after player update.
         self.keep_player_in_bounds()
 
@@ -141,6 +134,11 @@ class SpaceShooter(arcade.Window):
         self.player.draw()
         self.enemies_list.draw()
         self.clouds_list.draw()
+
+        if self.debug:
+            self.player.draw_hit_box()
+            self.enemies_list.draw_hit_boxes()
+            self.clouds_list.draw_hit_boxes()
 
     def add_enemy(self, delta_time: float):
         """Adds a new enemy to the screen
@@ -188,8 +186,9 @@ class SpaceShooter(arcade.Window):
 
     def on_key_press(self, symbol, modifiers):
         """Handle user keyboard input
-        Q: Quit the game
+        ESC: Quit the game
         P: Pause/Unpause the game
+        O: Debug
         I/J/K/L: Move Up, Left, Down, Right
         Arrows: Move Up, Left, Down, Right
 
@@ -203,6 +202,9 @@ class SpaceShooter(arcade.Window):
 
         if symbol == arcade.key.P:
             self.paused = not self.paused
+
+        if symbol == arcade.key.O:
+            self.debug = not self.debug
 
         if symbol in [arcade.key.W, arcade.key.UP]:
             self.player.change_y = 5
