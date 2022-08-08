@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 arcade = "*"
+black = "*"
 
 [dev-packages]
 black = "*"

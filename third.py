@@ -60,13 +60,16 @@ class SpaceShooter(arcade.Window):
         arcade.schedule(self.add_enemy, 0.25)
 
         # Spawn a new cloud every 1s
-        # arcade.schedule(self.add_cloud, 1.0)
+        arcade.schedule(self.add_cloud, 1.0)
 
     def on_update(self, delta_time: float):
         super().on_update(delta_time)
 
         for enemy in self.enemies_list:
             enemy.update()
+
+        for cloud in self.clouds_list:
+            cloud.update()
 
     def on_draw(self):
         """Called whenever you need to draw your window"""
@@ -75,6 +78,7 @@ class SpaceShooter(arcade.Window):
         arcade.start_render()
         self.player.draw()
         self.enemies_list.draw()
+        self.clouds_list.draw()
 
     def add_enemy(self, delta_time: float):
         """Adds a new enemy to the screen
@@ -94,6 +98,25 @@ class SpaceShooter(arcade.Window):
 
         # Add it to the enemies list
         self.enemies_list.append(enemy)
+
+    def add_cloud(self, delta_time: float):
+        """Adds a new cloud to the screen
+
+        Arguments:
+            delta_time {float} -- How much time has passed since the last call
+        """
+        # First, create the new cloud sprite
+        cloud: FlyingSprite = FlyingSprite("images/cloud.png", SCALING)
+
+        # Set its position to a random height and off screen right
+        cloud.left = random.randint(self.width, self.width + 80)
+        cloud.top = random.randint(10, self.height - 10)
+
+        # Set its speed to a random speed heading left
+        cloud.velocity = (random.randint(-10, -5), 0)
+
+        # Add it to the enemies list
+        self.clouds_list.append(cloud)
 
 
 if __name__ == "__main__":
