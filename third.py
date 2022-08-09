@@ -1,5 +1,6 @@
 # Basic arcade shooter
 
+from enum import Enum
 from time import sleep
 from typing import List
 import arcade
@@ -9,6 +10,12 @@ SCREEN_WIDTH: int = 800
 SCREEN_HEIGHT: int = 600
 SCREEN_TITLE: str = "Arcade Space Shooter"
 SCALING: float = 1.5
+
+
+class SpritesEnum(str, Enum):
+    PLAYER = "player"
+    ENEMIES = "enemies"
+    CLOUDS = "clouds"
 
 
 class FlyingSprite(arcade.Sprite):
@@ -39,6 +46,7 @@ class SpaceShooter(arcade.Window):
         super().__init__(width, height, title)
 
         self.paused: bool = False
+        self.scene: arcade.Scene | None = None
 
         # SpriteList come with update/draw/check behaviors.
         self.enemies_list: arcade.SpriteList | None = None
@@ -61,11 +69,17 @@ class SpaceShooter(arcade.Window):
         self.paused = False
         self.debug = False
 
-        self.enemies_list: arcade.SpriteList = arcade.SpriteList()
-        self.clouds_list: arcade.SpriteList = arcade.SpriteList()
+        self.scene = arcade.Scene()
 
         self.player = arcade.Sprite("images/jet.png", SCALING, center_y=self.height / 2)
         self.player.left = 10
+
+        enemies_list: arcade.SpriteList = arcade.SpriteList()
+        clouds_list: arcade.SpriteList = arcade.SpriteList()
+
+        self.scene.add_sprite(SpritesEnum.PLAYER, sprite=self.player)
+        self.scene.add_sprite_list(SpritesEnum.ENEMIES, sprite_list=enemies_list)
+        self.scene.add_sprite_list(SpritesEnum.CLOUDS, sprite_list=clouds_list)
 
         # Spawn new enemy every 0.25s
         arcade.schedule(self.add_enemy, 0.25)
@@ -104,24 +118,23 @@ class SpaceShooter(arcade.Window):
         if self.paused:
             return
 
+        enemies_list: arcade.SpriteList = self.scene.get_sprite_list(
+            SpritesEnum.ENEMIES
+        )
+
         # Check for collisions before updates
-        if self.player.collides_with_list(self.enemies_list):
+        if self.player.collides_with_list(enemies_list):
             arcade.play_sound(self.collision_sound)
             sleep(1)
             arcade.close_window()
 
-        sprites: List[arcade.Sprite] = (
-            [sprite for sprite in self.enemies_list]
-            + [sprite for sprite in self.clouds_list]
-            + [self.player]
-        )
-
-        for sprite in sprites:
-            sprite.set_position = (
-                int(sprite.center_x + sprite.change_x * delta_time),
-                int(sprite.center_y + sprite.change_y * delta_time),
-            )
-            sprite.update()
+        for sprite_list in self.scene.sprite_lists:
+            for sprite in sprite_list:
+                sprite.set_position = (
+                    int(sprite.center_x + sprite.change_x * delta_time),
+                    int(sprite.center_y + sprite.change_y * delta_time),
+                )
+                sprite.update()
 
         # Keep this after player update.
         self.keep_player_in_bounds()
@@ -131,14 +144,10 @@ class SpaceShooter(arcade.Window):
 
         # Clear the screen and start drawing
         arcade.start_render()
-        self.player.draw()
-        self.enemies_list.draw()
-        self.clouds_list.draw()
+        self.scene.draw()
 
         if self.debug:
-            self.player.draw_hit_box()
-            self.enemies_list.draw_hit_boxes()
-            self.clouds_list.draw_hit_boxes()
+            self.scene.draw_hit_boxes()
 
     def add_enemy(self, delta_time: float):
         """Adds a new enemy to the screen
@@ -160,7 +169,7 @@ class SpaceShooter(arcade.Window):
         enemy.velocity = (random.randint(-20, -5), 0)
 
         # Add it to the enemies list
-        self.enemies_list.append(enemy)
+        self.scene.add_sprite(SpritesEnum.ENEMIES, sprite=enemy)
 
     def add_cloud(self, delta_time: float):
         """Adds a new cloud to the screen
@@ -181,8 +190,8 @@ class SpaceShooter(arcade.Window):
         # Set its speed to a random speed heading left
         cloud.velocity = (random.randint(-10, -5), 0)
 
-        # Add it to the enemies list
-        self.clouds_list.append(cloud)
+        # Add it to the clouds list
+        self.scene.add_sprite(SpritesEnum.CLOUDS, sprite=cloud)
 
     def on_key_press(self, symbol, modifiers):
         """Handle user keyboard input
