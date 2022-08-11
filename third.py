@@ -118,9 +118,11 @@ class SpaceShooter(arcade.Window):
         if self.paused:
             return
 
-        enemies_list: arcade.SpriteList = self.scene.get_sprite_list(
-            SpritesEnum.ENEMIES
-        )
+        # enemies_list: arcade.SpriteList = self.scene.get_sprite_list(
+        #     SpritesEnum.ENEMIES
+        # )
+        # Dictionary method to get sprite list in scene
+        enemies_list: arcade.SpriteList = self.scene[SpritesEnum.ENEMIES]
 
         # Check for collisions before updates
         if self.player.collides_with_list(enemies_list):
