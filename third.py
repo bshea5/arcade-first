@@ -168,7 +168,7 @@ class SpaceShooter(arcade.Window):
         enemy.top = random.randint(10, self.height - 10)
 
         # Set its speed to a random speed heading left
-        enemy.velocity = (random.randint(-20, -5), 0)
+        enemy.velocity = (random.randint(-15, -5), 0)
 
         # Add it to the enemies list
         self.scene.add_sprite(SpritesEnum.ENEMIES, sprite=enemy)
@@ -183,7 +183,9 @@ class SpaceShooter(arcade.Window):
             return
 
         # First, create the new cloud sprite
-        cloud: FlyingSprite = FlyingSprite("images/cloud.png", SCALING)
+        cloud: FlyingSprite = FlyingSprite(
+            "images/cloud.png", SCALING, flipped_horizontally=random.randint(0, 1)
+        )
 
         # Set its position to a random height and off screen right
         cloud.left = random.randint(self.width, self.width + 80)

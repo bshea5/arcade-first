@@ -24,6 +24,7 @@ arcade.draw_circle_filled(
     SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, RADIUS, arcade.color.BLUE
 )
 arcade.draw_ellipse_filled(100, 100, 50, 50, arcade.color.AFRICAN_VIOLET)
+arcade.draw_line(100, 100, 200, 200, arcade.color.AERO_BLUE)
 
 # Finish drawing
 arcade.finish_render()
